@@ -27,8 +27,8 @@ const userRoutes = require('./routes/userRoutes')
 app.use('/transactions', transactionRoutes)
 app.use('/users',userRoutes)
 
-const PORT = process.env.PORT || 5000
-const HOSTNAME = process.env.HOSTNAME
-app.listen(PORT, HOSTNAME, () => {
-  console.log('Server is listening at: '+HOSTNAME+':'+PORT)
+const PORT = process.env.PORT || 51593
+// const HOSTNAME = process.env.HOSTNAME
+app.listen(PORT, () => {
+  console.log('Server is listening at:'+PORT)
 })
