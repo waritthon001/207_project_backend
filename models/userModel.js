@@ -46,10 +46,13 @@ userSchema.methods.generateAuthToken = async function() {
     return token
 }
 
-userSchema.statics.findByCredentials = async (email, password) => {
+userSchema.statics.findByCredentials = async (name,email, password) => {
     try {
+        // const name = await User.findOne( {name} )
+
         const user = await User.findOne( {email} )
 
+        if(user.name!=name) throw new Error()
         if(!user) throw new Error()
 
         //compere provided 'password' with hashed 'user.password

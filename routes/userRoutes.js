@@ -6,7 +6,10 @@ const User = require('../models/userModel')
 const auth = require('../middleware/auth')
 
 router.post('/',async (req,res)=>{
+  console.log(req.body)
+
   try {
+    
     const user = new User(req.body)
     // triggered ".pre" middleware
     await user.save()
@@ -14,21 +17,23 @@ router.post('/',async (req,res)=>{
 
     res.status(201).json({message:'add user successful',id:user._id,name:user.name,token})
   } catch (error) {
-    res.status(400).json({error:error})
+    console.log(error)
+    res.status(400).json({message:error})
   }
 })
 
 router.post('/login',async (req,res)=>{
   try {
-    const {email, password} = req.body
-    const user = await User.findByCredentials(email,password) //User is class
+    const {name,email, password} = req.body
+    // console.log(req.body)
+    const user = await User.findByCredentials(name,email,password) //User is class
 
     if(!user){
       return res.status(401).json({error:'Login failed,please check your credentials !'})
     }
 
-    const token = await user.generateAuthToken() // user is object
-    res.status(200).json({id:user._id,token:token,name:user.name})
+    // const token = await user.generateAuthToken() // user is object
+    res.status(200).json({id:user._id,name:user.name})
 
   } catch (error) {
     res.status(400).json({error:"email or password incorrect !"})
@@ -36,10 +41,15 @@ router.post('/login',async (req,res)=>{
   }
 })
 
-router.get('/me',auth,(req,res)=>{
-  const user = req.user
-  res.status(201).json(user)
+router.get('/', async (req,res) => {
+  try {
+    const user = await User.find()
+    res.status(200).json(user)
+  } catch (error) {
+    res.status(500).json( {error: error.message})
+  }
 })
+
 
 router.post('/logout', auth, async (req,res)=>{
   const user = req.user
@@ -66,57 +76,5 @@ router.post('/logoutall', auth, async (req,res)=>{
   }
 })
 
-router.put('/name', auth, async (req,res) => {
-  const update_t = {
-    name: req.body.name,
-    updated: new Date()
-  }
-  try {
-    const t = await User.findByIdAndUpdate(req.user._id, update_t, { new: true })
-    if (!t) {
-      res.status(404).json( { error: 'UPDATE::User not found' } )
-    } else {
-      res.status(200).json({name:t.name})
-    }
-  } catch (error) {
-    res.status(500).json ( { error: 'UPDATE::'+ error.message})
-  }
-})
 
-router.put('/email', auth, async (req,res) => {
-  const update_t = {
-    email: req.body.email,
-    updated: new Date()
-  }
-  try {
-    const t = await User.findByIdAndUpdate(req.user._id, update_t, { new: true })
-    if (!t) {
-      res.status(404).json( { error: 'UPDATE::User not found'} )
-    } else {
-      res.status(200).json(t)
-    }
-  } catch (error) {
-    res.status(500).json ( { error: 'UPDATE::'+error.message})
-  }
-})
-
-router.put('/password', auth, async (req,res) => {
-  try {
-    const user = req.user
-    user.password = req.body.password
-    await user.save()
-    const update_t ={
-      password: user.password,
-      updated: new Date()
-    }
-    const t = await User.findByIdAndUpdate(req.user, update_t, { new: true })
-    if (!t) {
-      res.status(404).json( { error:user.password} )// 'UPDATE::User not found'
-    } else {
-      res.status(200).json(t)
-    }
-  } catch (error) {
-    res.status(500).json ( { error: 'UPDATE::'+error.message})
-  }
-})
 module.exports = router
